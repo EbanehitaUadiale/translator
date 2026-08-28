@@ -1,5 +1,9 @@
 # Translator
 
+![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)
+![Django 5.2](https://img.shields.io/badge/django-5.2-092E20?logo=django&logoColor=white)
+![Claude Opus 5](https://img.shields.io/badge/Claude-Opus%205-D97757)
+
 A Django web app that translates text with the Claude API. Paste text, pick a
 target language, and get a translation back — the source language is detected
 for you. Every translation is saved to a searchable history.
