@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Translator{% endblock %}
+{% block content %}
+
+<form method="post" class="card" id="translate-form">
+  {% csrf_token %}
+
+  <div class="field">
+    <label for="{{ form.text.id_for_label }}">{{ form.text.label }}</label>
+    {{ form.text }}
+    {% if form.text.errors %}<p class="field__error">{{ form.text.errors|first }}</p>{% endif %}
+  </div>
+
+  <div class="row">
+    <div class="field field--inline">
+      <label for="{{ form.target_language.id_for_label }}">{{ form.target_language.label }}</label>
+      {{ form.target_language }}
+      {% if form.target_language.errors %}<p class="field__error">{{ form.target_language.errors|first }}</p>{% endif %}
+    </div>
+    <button type="submit" class="btn" id="submit-btn">Translate</button>
+  </div>
+
+  <p class="hint">The source language is detected automatically.</p>
+</form>
+
+{% if recent %}
+  <section class="recent">
+    <h2 class="recent__title">Recent</h2>
+    <ul class="list">
+      {% for translation in recent %}
+        <li class="list__item">
+          <a href="{% url 'detail' translation.pk %}">
+            <span class="list__langs">{{ translation.detected_language|default:"Unknown" }} &rarr; {{ translation.target_language }}</span>
+            <span class="list__preview">{{ translation.preview }}</span>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+    <p><a class="link" href="{% url 'history' %}">See all translations</a></p>
+  </section>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Translation takes a few seconds; without feedback the page looks frozen and
+  // people submit again.
+  (function () {
+    var form = document.getElementById("translate-form");
+    var button = document.getElementById("submit-btn");
+    if (!form || !button) return;
+    form.addEventListener("submit", function () {
+      button.disabled = true;
+      button.textContent = "Translating…";
+    });
+  })();
+</script>
+{% endblock %}

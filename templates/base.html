@@ -1,0 +1,30 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Translator{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+  <nav class="nav">
+    <a class="nav__brand" href="{% url 'index' %}">Translator</a>
+    <div class="nav__links">
+      <a href="{% url 'index' %}">New</a>
+      <a href="{% url 'history' %}">History</a>
+    </div>
+  </nav>
+
+  <main class="page">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert--{{ message.tags|default:'info' }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

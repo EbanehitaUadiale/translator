@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ translation.target_language }} translation{% endblock %}
+{% block content %}
+
+<div class="langs">
+  <span class="badge">{{ translation.detected_language|default:"Unknown" }}</span>
+  <span class="langs__arrow">&rarr;</span>
+  <span class="badge badge--target">{{ translation.target_language }}</span>
+  <span class="langs__time">{{ translation.created_at|date:"j M Y, H:i" }}</span>
+</div>
+
+<div class="card">
+  <div class="panel__head">
+    <h2>Translation</h2>
+    <button type="button" class="btn btn--ghost" id="copy-btn" data-copy-target="translated-text">Copy</button>
+  </div>
+  <div class="text text--result" id="translated-text">{{ translation.translated_text }}</div>
+</div>
+
+{% if translation.notes %}
+  <p class="note"><strong>Note:</strong> {{ translation.notes }}</p>
+{% endif %}
+
+<details class="card card--muted">
+  <summary>Original text</summary>
+  <div class="text">{{ translation.source_text }}</div>
+</details>
+
+<div class="actions">
+  <a class="btn" href="{% url 'reuse' translation.pk %}">Edit and retranslate</a>
+  <a class="btn btn--ghost" href="{% url 'index' %}">New translation</a>
+  <form method="post" action="{% url 'delete' translation.pk %}" class="actions__delete">
+    {% csrf_token %}
+    <button type="submit" class="btn btn--danger">Delete</button>
+  </form>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    var button = document.getElementById("copy-btn");
+    if (!button || !navigator.clipboard) return;
+    button.addEventListener("click", function () {
+      var source = document.getElementById(button.dataset.copyTarget);
+      if (!source) return;
+      navigator.clipboard.writeText(source.textContent).then(function () {
+        button.textContent = "Copied";
+        setTimeout(function () { button.textContent = "Copy"; }, 1500);
+      });
+    });
+  })();
+</script>
+{% endblock %}

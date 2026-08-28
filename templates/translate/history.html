@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}History{% endblock %}
+{% block content %}
+
+<form method="get" class="search">
+  <input type="search" name="q" value="{{ query }}" placeholder="Search your translations" aria-label="Search translations">
+  <button type="submit" class="btn">Search</button>
+  {% if query %}<a class="link" href="{% url 'history' %}">Clear</a>{% endif %}
+</form>
+
+{% if translations %}
+  <ul class="list">
+    {% for translation in translations %}
+      <li class="list__item">
+        <a href="{% url 'detail' translation.pk %}">
+          <span class="list__langs">{{ translation.detected_language|default:"Unknown" }} &rarr; {{ translation.target_language }}</span>
+          <span class="list__preview">{{ translation.preview }}</span>
+          <span class="list__time">{{ translation.created_at|date:"j M Y, H:i" }}</span>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div class="empty">
+    {% if query %}
+      <p>Nothing matched &ldquo;{{ query }}&rdquo;.</p>
+      <p><a class="link" href="{% url 'history' %}">Show everything</a></p>
+    {% else %}
+      <p>No translations yet.</p>
+      <p><a class="link" href="{% url 'index' %}">Translate something</a></p>
+    {% endif %}
+  </div>
+{% endif %}
+
+{% endblock %}
