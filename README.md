@@ -1,5 +1,6 @@
 # Translator
 
+[![Tests](https://github.com/EbanehitaUadiale/translator/actions/workflows/ci.yml/badge.svg)](https://github.com/EbanehitaUadiale/translator/actions/workflows/ci.yml)
 ![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)
 ![Django 5.2](https://img.shields.io/badge/django-5.2-092E20?logo=django&logoColor=white)
 ![Claude Opus 5](https://img.shields.io/badge/Claude-Opus%205-D97757)
