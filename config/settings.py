@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+import dj_database_url
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -32,12 +33,18 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # Serves collected static files in production; Django itself won't once
+    # DEBUG is off. Must sit directly after SecurityMiddleware.
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # After sessions and messages, since the gate reads the session and the
+    # unlock view sets a message. Inert unless APP_PASSWORD is set.
+    "translate.middleware.PasswordGateMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -59,11 +66,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
+# Postgres in production via DATABASE_URL, SQLite locally. A hosted app must
+# not fall back to SQLite: Render's disk is ephemeral, so every redeploy would
+# silently wipe everyone's translation history.
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    "default": dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -82,6 +93,22 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        # In production, compress and fingerprint static files so they can be
+        # cached forever. That backend reads a manifest written by
+        # collectstatic, so it can only be used where collectstatic has run --
+        # switching it on in development or under tests makes every template
+        # that uses {% static %} raise "Missing staticfiles manifest entry".
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.StaticFilesStorage"
+            if DEBUG
+            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        )
+    },
+}
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGGING = {
@@ -98,8 +125,22 @@ LOGGING = {
 # `ant auth login` profile, so an empty value here is not necessarily an error.
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 
+# Shared password gating the whole app (translate/middleware.py). Every
+# translation spends real money on the key above, so a public deployment needs
+# this set. Blank disables the gate, which is what local development wants.
+APP_PASSWORD = os.environ.get("APP_PASSWORD", "")
+
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    # Render terminates TLS at its proxy and forwards the original scheme here.
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+    # Tell browsers to refuse plain HTTP to this host for a year. Safe on Render,
+    # which serves every app over HTTPS only. Preload stays off deliberately --
+    # getting a domain onto the browser preload list is the part that is
+    # genuinely hard to undo.
+    SECURE_HSTS_SECONDS = 31_536_000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = False

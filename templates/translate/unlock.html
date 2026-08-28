@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Enter password{% endblock %}
+{% block content %}
+
+<form method="post" class="card">
+  {% csrf_token %}
+  <h1 class="unlock__title">This translator is private</h1>
+  <p class="hint" style="margin-top: 0;">Enter the password you were given to continue.</p>
+
+  <div class="field" style="margin-top: 1.1rem;">
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" autocomplete="current-password" autofocus required>
+  </div>
+
+  <button type="submit" class="btn" style="width: 100%;">Unlock</button>
+</form>
+
+{% endblock %}

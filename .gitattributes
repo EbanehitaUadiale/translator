@@ -1,0 +1,4 @@
+# Shell scripts must keep LF endings. Checked out with CRLF on Windows and
+# committed that way, build.sh fails on Render's Linux runner with a "bad
+# interpreter: /usr/bin/env bash^M" error that reads like a missing dependency.
+*.sh text eol=lf

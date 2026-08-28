@@ -85,7 +85,7 @@ body {
 .field--inline { margin-bottom: 0; flex: 1; }
 .field__error { margin: 0.4rem 0 0; color: var(--danger); font-size: 0.88rem; }
 
-textarea, select, input[type="search"] {
+textarea, select, input[type="search"], input[type="password"] {
   width: 100%;
   padding: 0.65rem 0.75rem;
   border: 1px solid var(--border);
@@ -97,10 +97,12 @@ textarea, select, input[type="search"] {
 
 textarea { resize: vertical; min-height: 9rem; }
 
-textarea:focus, select:focus, input[type="search"]:focus {
+textarea:focus, select:focus, input[type="search"]:focus, input[type="password"]:focus {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
+
+.unlock__title { margin: 0; font-size: 1.25rem; letter-spacing: -0.01em; }
 
 .row { display: flex; gap: 0.9rem; align-items: flex-end; }
 

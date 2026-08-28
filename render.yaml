@@ -1,0 +1,38 @@
+databases:
+  - name: translator-db
+    databaseName: translator
+    plan: free
+
+services:
+  - type: web
+    name: translator
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn config.wsgi:application"
+    healthCheckPath: /unlock/
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: translator-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        # Replace with your own hostname once Render assigns it, or after you
+        # attach a custom domain.
+        value: translator.onrender.com
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://translator.onrender.com
+      - key: PYTHON_VERSION
+        value: "3.13.1"
+      # Set both of these in the Render dashboard, not here -- sync:false keeps
+      # them out of the repo. APP_PASSWORD is what stops strangers spending your
+      # Anthropic credits, so the app is not safe to run without it.
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: APP_PASSWORD
+        sync: false

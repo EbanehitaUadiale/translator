@@ -1,3 +1,6 @@
+import secrets
+
+from django.conf import settings
 from django.contrib import messages
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
@@ -6,6 +9,25 @@ from django.views.decorators.http import require_POST
 from .claude import TranslationError, translate
 from .forms import TranslateForm
 from .models import Translation
+
+
+def unlock(request):
+    """The shared-password gate. See translate/middleware.py for why it exists."""
+    if not settings.APP_PASSWORD or request.session.get("unlocked"):
+        return redirect("index")
+
+    if request.method == "POST":
+        # Constant-time compare, so the response time can't be used to guess
+        # the password one character at a time.
+        if secrets.compare_digest(request.POST.get("password", ""), settings.APP_PASSWORD):
+            # Deliberately not cycling the session key here. History is scoped
+            # by session key, so rotating it would orphan everything the
+            # visitor had already translated.
+            request.session["unlocked"] = True
+            return redirect("index")
+        messages.error(request, "That password isn't right.")
+
+    return render(request, "translate/unlock.html")
 
 
 def _session_key(request):

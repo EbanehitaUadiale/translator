@@ -126,6 +126,46 @@ class TranslateTests(TestCase):
         self.assertIn("network", str(ctx.exception).lower())
 
 
+@override_settings(APP_PASSWORD="hunter2", ANTHROPIC_API_KEY="sk-ant-test")
+class PasswordGateTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+
+    def test_the_app_is_unreachable_until_unlocked(self):
+        for name in ("index", "history"):
+            self.assertRedirects(self.client.get(reverse(name)), reverse("unlock"))
+
+    def test_translating_is_blocked_before_unlocking(self):
+        with patch("translate.views.translate") as mock:
+            self.client.post(reverse("index"), {"text": "Hola", "target_language": "English"})
+        mock.assert_not_called()
+        self.assertFalse(Translation.objects.exists())
+
+    def test_the_right_password_opens_the_app(self):
+        response = self.client.post(reverse("unlock"), {"password": "hunter2"})
+        self.assertRedirects(response, reverse("index"))
+        self.assertEqual(self.client.get(reverse("index")).status_code, 200)
+
+    def test_the_wrong_password_does_not(self):
+        response = self.client.post(reverse("unlock"), {"password": "wrong"}, follow=True)
+        self.assertContains(response, "That password isn")  # apostrophe is HTML-escaped
+        self.assertRedirects(self.client.get(reverse("index")), reverse("unlock"))
+
+    def test_the_unlock_page_is_reachable(self):
+        self.assertEqual(self.client.get(reverse("unlock")).status_code, 200)
+
+    def test_static_files_bypass_the_gate(self):
+        # Otherwise the unlock page renders unstyled. A blocked request would
+        # redirect to /unlock/; the 404 here is just the test client not serving
+        # static files, which whitenoise does in production.
+        response = self.client.get("/static/css/style.css")
+        self.assertNotEqual(response.status_code, 302)
+
+    @override_settings(APP_PASSWORD="")
+    def test_a_blank_password_disables_the_gate_for_local_development(self):
+        self.assertEqual(self.client.get(reverse("index")).status_code, 200)
+
+
 @override_settings(ANTHROPIC_API_KEY="sk-ant-test")
 class ViewTests(TestCase):
     def setUp(self):
