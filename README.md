@@ -4,6 +4,7 @@
 ![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)
 ![Django 5.2](https://img.shields.io/badge/django-5.2-092E20?logo=django&logoColor=white)
 ![Claude Opus 5](https://img.shields.io/badge/Claude-Opus%205-D97757)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 A Django web app that translates text with the Claude API. Paste text, pick a
 target language, and get a translation back — the source language is detected
@@ -78,3 +79,7 @@ throughout, so the suite never makes a real API call or costs anything.
 Input is capped at 20,000 characters per translation (`MAX_INPUT_CHARS` in
 `claude.py`), since the whole text goes in a single request. Longer documents
 need chunking, which isn't built yet.
+
+## License
+
+[MIT](LICENSE).
